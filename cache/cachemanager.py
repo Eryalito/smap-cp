@@ -1,7 +1,13 @@
 from abc import abstractmethod
+from json.encoder import JSONEncoder
 
 
 class CacheManager():
+
+    class CacheEncoder(JSONEncoder):
+        def default(self, o):
+            return o.__dict__
+
     def __init__(self):
         pass
 

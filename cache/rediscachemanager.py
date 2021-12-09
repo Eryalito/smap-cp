@@ -22,7 +22,7 @@ class RedisCacheManager(CacheManager):
 
     def PutSerializable(self, key: str, value: any) -> bool:
         return self._redis.set(name=(self._prefix+key),
-                               value=json.dumps(value))
+                               value=self.CacheEncoder().encode(value))
 
     def GetSerializable(self, key: str) -> any:
         return json.loads(self._redis.get(self._prefix+key).decode('utf-8'))

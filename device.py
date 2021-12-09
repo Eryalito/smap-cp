@@ -4,12 +4,13 @@ from annotations import auto_str
 @auto_str
 class Device:
     def __init__(self, identifier: str, ip: str,
-                 key: str, version: str, name: str = ''):
+                 key: str, version: str, name: str = '', steps: list = []):
         self.id = identifier
         self.ip = ip
         self.key = key
         self.version = version
         self.name = name
+        self.steps = steps
 
     @property
     def id(self):
@@ -50,3 +51,11 @@ class Device:
     @name.setter
     def name(self, value):
         self._name = value
+
+    @property
+    def steps(self):
+        return self._steps
+
+    @steps.setter
+    def steps(self, value):
+        self._steps = value

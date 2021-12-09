@@ -4,6 +4,11 @@ devices:
     key: yyyyyyyyyyyyyyyyy
     ip: 'xxx.xxx.xxx.xxx'
     version: '3.3'
+    steps:
+      - start: 00 # start at 00:00
+        end: 24 # end at 24:00
+        count: 3 # switched on for 3 hours in the period
+
 cache-config:
   type: redis
   prefix: smap-cp-

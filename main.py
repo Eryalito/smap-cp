@@ -30,5 +30,7 @@ if __name__ == '__main__':
     devices = utils.DictToDevices(devicesdict)
     cacheManagerFactory = CacheManagerFactory(config['cache-config'])
     cacheManager = cacheManagerFactory.GetManager()
-    cacheManager.PutSerializable('key', utils.DevicesToDict(devices))
+    cacheManager.PutSerializable('key', devices)
     print(cacheManager.GetSerializable('key'))
+    print(utils.DictToDevices(cacheManager.GetSerializable('key')))
+    print(utils.DevicesToDict(utils.DictToDevices(cacheManager.GetSerializable('key'))))
