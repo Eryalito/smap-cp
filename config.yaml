@@ -4,3 +4,6 @@ devices:
     key: yyyyyyyyyyyyyyyyy
     ip: 'xxx.xxx.xxx.xxx'
     version: '3.3'
+cache-config:
+  type: redis
+  prefix: smap-cp-

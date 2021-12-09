@@ -1,4 +1,4 @@
-from utils import auto_str
+from annotations import auto_str
 
 
 @auto_str

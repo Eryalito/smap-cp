@@ -1,8 +1,25 @@
-def auto_str(cls):
-    def __str__(self):
-        return '%s(%s)' % (
-            type(self).__name__,
-            ', '.join('%s=%s' % item for item in vars(self).items())
-        )
-    cls.__str__ = __str__
-    return cls
+from device import Device
+
+
+def DevicesToDict(devices: list) -> dict:
+    newDevices = []
+    for device in devices:
+        newDevices.append(device.__dict__)
+    return newDevices
+
+
+def DictToDevices(devices: dict) -> list:
+    newDevices = []
+    for deviceDict in devices:
+        if('id' not in deviceDict or
+           'key' not in deviceDict or 'ip' not in deviceDict):
+            raise ValueError('Invalid device found')
+        id = deviceDict['id']
+        key = deviceDict['key']
+        ip = deviceDict['ip']
+        vers = deviceDict['version'] if 'vresion' in deviceDict else '3.3'
+        name = deviceDict['name'] if 'name' in deviceDict else id
+        device = Device(identifier=id, key=key, ip=ip,
+                        version=vers, name=name)
+        newDevices.append(device)
+    return newDevices
