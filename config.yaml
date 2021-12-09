@@ -1,0 +1,6 @@
+devices:
+  - name: Switch1
+    id: xxxxxxxxxxxxxxxxxxx
+    key: yyyyyyyyyyyyyyyyy
+    ip: 'xxx.xxx.xxx.xxx'
+    version: '3.3'
