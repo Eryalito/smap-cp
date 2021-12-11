@@ -35,6 +35,7 @@ def DictToDevices(devices: dict) -> list:
             if type(stepsDict) == list:
                 for stepDict in stepsDict:
                     step = Step(
+                        days=stepDict['days'] if 'days' in stepDict else stepDict['_days'] if '_days' in stepDict else '0-6',
                         start=int(stepDict['start']
                                   ) if 'start' in stepDict else
                         (int(stepDict['_start']
