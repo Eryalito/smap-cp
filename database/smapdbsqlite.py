@@ -52,3 +52,15 @@ class SMAPDBSQLite(SMAPDB):
         for row in cursor.fetchall():
             devices.append(Record(id=row[0], timestamp=row[1], deviceID=row[2], seconds=row[3]))
         return devices
+    
+    def getRecordsByDevice(self, deviceID: str, fro: any = None, to: any = None) -> list:
+        if fro is None:
+            fro = self._getFirstTimestamp()
+        if to is None:
+            to = self._getCurrentTimestamp()
+        cursor = self._connection.cursor()
+        cursor = cursor.execute('SELECT id, `timestamp`, deviceID, seconds FROM ' + self._tableRecords() + ' WHERE `timestamp` >= ? and `timestamp` <= ? and deviceID=?', (fro, to, deviceID))
+        devices = []
+        for row in cursor.fetchall():
+            devices.append(Record(id=row[0], timestamp=row[1], deviceID=row[2], seconds=row[3]))
+        return devices

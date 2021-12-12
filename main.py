@@ -1,7 +1,8 @@
 import json
 
 from redis import utils
-from actuator import Actuator
+from orchestrator import Orchestrator
+from provider.actuator import Actuator
 from database.smapdbfactory import SMAPDBFactory
 from device import Device
 from configparser import ConfigParser
@@ -38,7 +39,9 @@ if __name__ == '__main__':
     devices = utils.DictToDevices(devicesdict)
     cacheManagerFactory = CacheManagerFactory(config['cache-config'])
     cacheManager = cacheManagerFactory.GetManager()
-    cacheManager.PutSerializable('key', devices)
-    print(cacheManager.GetSerializable('key'))
-    print(utils.DictToDevices(cacheManager.GetSerializable('key')))
-    print(utils.DevicesToDict(utils.DictToDevices(cacheManager.GetSerializable('key'))))
+    cacheManager.PutSerializable('devices', devices)
+    timerTime = config['application-config']['timer'] if 'application-config' in config and 'timer' in config['application-config'] else 10
+    cacheManager.PutValue('timer_time', timerTime)
+    orchestrator = Orchestrator(cacheManager=cacheManager, db=db)
+    orchestrator.start()
+    

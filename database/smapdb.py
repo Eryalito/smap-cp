@@ -32,3 +32,8 @@ class SMAPDB():
     def getRecords(self, fro: any = None, to: any = None) -> list:
         pass
     
+    
+    @abstractmethod
+    def getRecordsByDevice(self, deviceID: str, fro: any = None, to: any = None) -> list:
+        pass
+    

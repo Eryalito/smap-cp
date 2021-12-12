@@ -1,10 +1,12 @@
+from typing import List
 from annotations import auto_str
+from step import Step
 
 
 @auto_str
 class Device:
     def __init__(self, identifier: str, ip: str,
-                 key: str, version: str, name: str = '', steps: list = []):
+                 key: str, version: str, name: str = '', steps: List[Step] = []):
         self.id = identifier
         self.ip = ip
         self.key = key
@@ -53,7 +55,7 @@ class Device:
         self._name = value
 
     @property
-    def steps(self):
+    def steps(self) -> List[Step]:
         return self._steps
 
     @steps.setter

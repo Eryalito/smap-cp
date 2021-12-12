@@ -1,4 +1,5 @@
 from json.encoder import JSONEncoder
+from typing import List
 from device import Device
 from step import Step
 
@@ -8,12 +9,12 @@ class encoder(JSONEncoder):
         return o.__dict__
 
 
-def DevicesToDict(devices: list) -> dict:
+def DevicesToDict(devices: List[Device]) -> dict:
     newDevices = encoder().encode(devices)
     return newDevices
 
 
-def DictToDevices(devices: dict) -> list:
+def DictToDevices(devices: dict) -> List[Device]:
     newDevices = []
     for deviceDict in devices:
         if not (

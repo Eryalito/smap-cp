@@ -5,7 +5,7 @@ devices:
     ip: 'xxx.xxx.xxx.xxx'
     version: '3.3'
     steps:
-      - days: 0-6 # wwek days 0 - Sunday : 6 - Saturnday
+      - days: 0-6 # wwek days 0 - Monday : 6 - Sunday
         start: 00 # start at 00:00
         end: 24 # end at 24:00
         count: 3 # switched on for 3 hours in the period
@@ -18,3 +18,6 @@ database-config:
   type: sqlite
   spec:
     file: database.db
+
+application-config:
+  timer: 1
