@@ -2,6 +2,7 @@ import json
 
 from redis import utils
 from actuator import Actuator
+from database.smapdbfactory import SMAPDBFactory
 from device import Device
 from configparser import ConfigParser
 from cache.cachemanager import CacheManager
@@ -26,6 +27,13 @@ if __name__ == '__main__':
        type(config['cache-config']) is not dict):
         logging.error('No cache-config in config file')
         exit(1)
+    if('database-config' not in config or
+       type(config['database-config']) is not dict):
+        logging.error('No cadatabaseche-config in config file')
+        exit(1)
+    db = SMAPDBFactory(config['database-config']).getDB()
+    db.init()
+    
     devicesdict = config['devices']
     devices = utils.DictToDevices(devicesdict)
     cacheManagerFactory = CacheManagerFactory(config['cache-config'])

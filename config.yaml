@@ -13,3 +13,8 @@ devices:
 cache-config:
   type: redis
   prefix: smap-cp-
+
+database-config:
+  type: sqlite
+  spec:
+    file: database.db
