@@ -126,22 +126,25 @@ class Orchestrator:
                                 # turn on
                                 turnOnSeconds = self._sleepTime * 3
                                 try:
-                                    provider.TurnOn(seconds=turnOnSeconds)
-                                    if recordPending:
-                                        newTime = int(now - utils.TimestampToUnix(lastRecord.timestamp) + turnOnSeconds)
-                                        remaining = 0
-                                        if newTime > self.HOUR_SECONDS:
-                                            remaining = newTime - self.HOUR_SECONDS
-                                            newTime = 3600
-                                        self._db.updateRecord(id=lastRecord.id, seconds=newTime, timestamp=None, deviceID=None)
-                                        if remaining != 0:
-                                            self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=lastRecord.deviceID, seconds=remaining)
-                                    else:
-                                        self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=device.id, seconds=turnOnSeconds)
-                                except Error:
+                                    turnedOn = provider.TurnOn(seconds=turnOnSeconds)
+                                    if turnedOn:
+                                        if recordPending:
+                                            newTime = int(now - utils.TimestampToUnix(lastRecord.timestamp) + turnOnSeconds)
+                                            remaining = 0
+                                            if newTime > self.HOUR_SECONDS:
+                                                remaining = newTime - self.HOUR_SECONDS
+                                                newTime = 3600
+                                            self._db.updateRecord(id=lastRecord.id, seconds=newTime, timestamp=None, deviceID=None)
+                                            if remaining != 0:
+                                                self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=lastRecord.deviceID, seconds=remaining)
+                                        else:
+                                            self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=device.id, seconds=turnOnSeconds)
+                                except KeyError:
                                     logging.error('Error turning on the device "' + device.id + ' (' + device.name + ')" forcing stop...')
                                     try:
-                                        provider.TurnOff()
-                                        logging.error('Device stopped successfully')
-                                    except Error:
-                                        logging.error('Error trying to stopping. The plug can be turned on.')
+                                        if provider.TurnOff():
+                                            logging.error('Device stopped successfully')
+                                        else:
+                                            logging.error('Device could not be stopped')
+                                    except KeyError:
+                                        logging.error('Error trying to stop. The plug could be turn on.')
