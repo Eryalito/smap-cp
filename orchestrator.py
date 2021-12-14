@@ -1,5 +1,6 @@
 import datetime
 import logging
+import math
 import re
 import time
 from binascii import Error
@@ -84,8 +85,10 @@ class Orchestrator:
                     to = int(step.days)
 
                 if today >= fro and today <= to:
-                    startTS = self._todayTimestamp() - (today - fro) * self.DAY_LENGTH
-                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=self._TSToDT(startTS), to=self._TSToDT(time.time()))
+                    startTS = self._todayTimestamp() + step.start * self.HOUR_SECONDS
+                    endTS = self._todayTimestamp() + step.end * self.HOUR_SECONDS
+                    endTS = endTS if endTS < now else now
+                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=self._TSToDT(startTS), to=self._TSToDT(endTS))
                     totalTime = 0
                     lastRecord = None
                     recordPending = False
@@ -105,7 +108,6 @@ class Orchestrator:
                     if (step.count * self.HOUR_SECONDS) > totalTime:
                         # step not ended, find hours
                         prices = self.getPriceForDay(self.__dayTimestamp(now))
-                        prices.sort(key=lambda x: x.price)
                         # First, filter elements by step hours
                         newPrices = []
                         for price in prices:
@@ -114,7 +116,8 @@ class Orchestrator:
                             if lower >= int(step.start) and upper <= int(step.end):
                                 newPrices.append(price)
                         # Every price last an hour. Pick just `count` first
-                        newPrices = newPrices[0:int(step.count) if step.count <= len(newPrices) else len(newPrices)]
+                        newPrices.sort(key=lambda x: x.price)
+                        newPrices = newPrices[0:int(math.ceil(step.count)) if step.count <= len(newPrices) else len(newPrices)]
                         currentTime = datetime.datetime.fromtimestamp(now)
                         for price in newPrices:
                             lower = int(price.hour.split('-')[0])
