@@ -2,7 +2,6 @@ import json
 
 from redis import utils
 from orchestrator import Orchestrator
-from provider.actuator import Actuator
 from database.smapdbfactory import SMAPDBFactory
 from device import Device
 from configparser import ConfigParser
@@ -24,17 +23,14 @@ if __name__ == '__main__':
     if('devices' not in config or type(config['devices']) is not list):
         logging.error('No devices in config file')
         exit(1)
-    if('cache-config' not in config or
-       type(config['cache-config']) is not dict):
+    if('cache-config' not in config or type(config['cache-config']) is not dict):
         logging.error('No cache-config in config file')
         exit(1)
-    if('database-config' not in config or
-       type(config['database-config']) is not dict):
+    if('database-config' not in config or type(config['database-config']) is not dict):
         logging.error('No cadatabaseche-config in config file')
         exit(1)
     db = SMAPDBFactory(config['database-config']).getDB()
     db.init()
-    
     devicesdict = config['devices']
     devices = utils.DictToDevices(devicesdict)
     cacheManagerFactory = CacheManagerFactory(config['cache-config'])
@@ -44,4 +40,3 @@ if __name__ == '__main__':
     cacheManager.PutValue('timer_time', timerTime)
     orchestrator = Orchestrator(cacheManager=cacheManager, db=db)
     orchestrator.start()
-    

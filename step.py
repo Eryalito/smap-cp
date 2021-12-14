@@ -3,7 +3,7 @@ from annotations import auto_str
 
 @auto_str
 class Step:
-    def __init__(self, days: str, start: int, end: int, count: int):
+    def __init__(self, days: str, start: int, end: int, count: float):
         self.days = days
         self.start = start
         self.end = end

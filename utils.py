@@ -1,5 +1,8 @@
+import datetime
+import time
 from json.encoder import JSONEncoder
 from typing import List
+
 from device import Device
 from step import Step
 
@@ -7,6 +10,14 @@ from step import Step
 class encoder(JSONEncoder):
     def default(self, o):
         return o.__dict__
+
+
+def TimestampToUnix(timestamp: str) -> float:
+    return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').timetuple())
+
+
+def UnixToTimestamp(unix: float) -> str:
+    return datetime.datetime.fromtimestamp(unix).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def DevicesToDict(devices: List[Device]) -> dict:
@@ -17,11 +28,7 @@ def DevicesToDict(devices: List[Device]) -> dict:
 def DictToDevices(devices: dict) -> List[Device]:
     newDevices = []
     for deviceDict in devices:
-        if not (
-            ('id' in deviceDict or '_id' in deviceDict)
-            and
-            ('key' in deviceDict or '_key' in deviceDict)
-        ):
+        if not (('id' in deviceDict or '_id' in deviceDict) and ('key' in deviceDict or '_key' in deviceDict)):
             raise ValueError('Invalid device found')
         id = deviceDict['id'] if 'id' in deviceDict else deviceDict['_id']
         key = deviceDict['key'] if 'key' in deviceDict else deviceDict['_key']
@@ -45,9 +52,9 @@ def DictToDevices(devices: dict) -> List[Device]:
                         if 'end' in stepDict else
                         (int(stepDict['_end'])
                          if '_end' in stepDict else 24),
-                        count=int(stepDict['count'])
+                        count=float(stepDict['count'])
                         if 'count' in stepDict else
-                        (int(stepDict['_count'])
+                        (float(stepDict['_count'])
                          if '_count' in stepDict else 0)
                     )
                     steps.append(step)
