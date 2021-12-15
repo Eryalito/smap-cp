@@ -29,6 +29,9 @@ if __name__ == '__main__':
     if('database-config' not in config or type(config['database-config']) is not dict):
         logging.error('No cadatabaseche-config in config file')
         exit(1)
+    if('application-config' in config and type(config['application-config']) is dict and 'timezone' in config['application-config']):
+        utils.TIMEZONE = config['application-config']['timezone']
+
     db = SMAPDBFactory(config['database-config']).getDB()
     db.init()
     devicesdict = config['devices']

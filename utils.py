@@ -3,8 +3,12 @@ import time
 from json.encoder import JSONEncoder
 from typing import List
 
+import pytz
+
 from device import Device
 from step import Step
+
+TIMEZONE = 'UTC'
 
 
 class encoder(JSONEncoder):
@@ -13,11 +17,11 @@ class encoder(JSONEncoder):
 
 
 def TimestampToUnix(timestamp: str) -> float:
-    return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').timetuple())
+    return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone(TIMEZONE)).astimezone(tz=None).timetuple())
 
 
 def UnixToTimestamp(unix: float) -> str:
-    return datetime.datetime.fromtimestamp(unix).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.datetime.fromtimestamp(unix).astimezone(pytz.timezone(TIMEZONE)).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def DevicesToDict(devices: List[Device]) -> dict:

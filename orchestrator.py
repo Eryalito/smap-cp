@@ -11,6 +11,7 @@ from database.smapdb import SMAPDB
 from price import Price
 from prices.reees import ReeES
 from provider.tuyaprovider import TuyaProvider
+import pytz
 
 
 class Orchestrator:
@@ -27,15 +28,15 @@ class Orchestrator:
         )
 
     def __dayTimestamp(self, t: float) -> str:
-        return datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d')
+        return datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(utils.TIMEZONE)).strftime('%Y-%m-%d')
 
     def __dayUnix(self, t: float):
-        t = datetime.datetime.strptime(datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d'), '%Y-%m-%d')
+        t = datetime.datetime.strptime(datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(utils.TIMEZONE)).strftime('%Y-%m-%d'), '%Y-%m-%d')
+        t = t.replace(tzinfo=pytz.timezone(utils.TIMEZONE)).astimezone(tz=None)
         return time.mktime(t.timetuple())
 
-    def _todayTimestamp(self) -> float:
-        ts = time.time()
-        return self.__dayUnix(ts)
+    def _dayTimestamp(self, timestamp) -> float:
+        return self.__dayUnix(timestamp)
 
     def _TSToDT(self, TS: float) -> str:
         return datetime.datetime.fromtimestamp(TS).strftime('%Y-%m-%d %H:%M:%S')
@@ -51,7 +52,7 @@ class Orchestrator:
         prices = []
         try:
             cacheResult = self._cacheManager.GetSerializable('price-' + day)
-        except Error:
+        except AttributeError:
             pass
         if cacheResult is None:
             code, prices = ReeES().getDataForDay(day)
@@ -63,7 +64,7 @@ class Orchestrator:
             return prices
         else:
             for price in cacheResult:
-                prices.append(Price(day=price['day'], hour=price['hour'], price=price['price']))
+                prices.append(Price(day=price['day'], start=price['start'], length=price['length'], price=price['price']))
             return prices
 
     def executeOnce(self) -> None:
@@ -85,10 +86,9 @@ class Orchestrator:
                     to = int(step.days)
 
                 if today >= fro and today <= to:
-                    startTS = self._todayTimestamp() + step.start * self.HOUR_SECONDS
-                    endTS = self._todayTimestamp() + step.end * self.HOUR_SECONDS
-                    endTS = endTS if endTS < now else now
-                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=self._TSToDT(startTS), to=self._TSToDT(endTS))
+                    startTS = self._dayTimestamp(now) + step.start * self.HOUR_SECONDS
+                    endTS = self._dayTimestamp(now) + step.end * self.HOUR_SECONDS
+                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=self._TSToDT(startTS), to=self._TSToDT(endTS if endTS < now else now))
                     totalTime = 0
                     lastRecord = None
                     recordPending = False
@@ -111,18 +111,18 @@ class Orchestrator:
                         # First, filter elements by step hours
                         newPrices = []
                         for price in prices:
-                            lower = int(price.hour.split('-')[0])
-                            upper = int(price.hour.split('-')[1])
-                            if lower >= int(step.start) and upper <= int(step.end):
+                            start = utils.TimestampToUnix(price.start)
+                            end = start + price.length
+                            if start >= startTS and end <= endTS:
                                 newPrices.append(price)
                         # Every price last an hour. Pick just `count` first
                         newPrices.sort(key=lambda x: x.price)
                         newPrices = newPrices[0:int(math.ceil(step.count)) if step.count <= len(newPrices) else len(newPrices)]
-                        currentTime = datetime.datetime.fromtimestamp(now)
+
                         for price in newPrices:
-                            lower = int(price.hour.split('-')[0])
-                            upper = int(price.hour.split('-')[1])
-                            if currentTime.hour >= lower and currentTime.hour < upper:
+                            start = utils.TimestampToUnix(price.start)
+                            end = start + price.length
+                            if now >= start and now < end:
                                 # turn on
                                 turnOnSeconds = self._sleepTime * 3
                                 try:
