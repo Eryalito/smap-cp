@@ -28,6 +28,7 @@ database-config:
 
 application-config:
   timer: 10
+  timezone: CET
 ```
 Let's dig in into the fields:
 - **devices**: it's an array of devices, containing all the information about the smart plugs.
@@ -51,6 +52,7 @@ Let's dig in into the fields:
   - **prefix**: table prefix
 - **application-config**: application config
   - **timer**: time in seconds between executions
+  - **timezone**: Application timezone. Must match prices timezone *(CET for Ree)*
 
 ## How it works
 ----
