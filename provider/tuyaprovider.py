@@ -12,11 +12,11 @@ class TuyaProvider:
     # Turn on the device for the given seconds. 0 make it on forever
     def TurnOn(self, seconds: int = 0):
         data = self._outlet.set_status(True, 1)
-        if 'Error' in data:
+        if data is not None and 'Error' in data:
             return False
         self._outlet.set_timer(seconds)
         return True
 
     def TurnOff(self):
         data = self._outlet.set_status(False, 1)
-        return 'Error' not in data
+        return data is not None and 'Error' not in data
