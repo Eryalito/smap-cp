@@ -42,10 +42,11 @@ class Orchestrator:
         return datetime.datetime.fromtimestamp(TS).strftime('%Y-%m-%d %H:%M:%S')
 
     def start(self) -> None:
-        self._sleepTime = int(self._cacheManager.GetValue('timer_time'))
-        self.executeOnce()
-        time.sleep(self._sleepTime)
-        self.start()
+        while(True):
+            print('loop')
+            self._sleepTime = int(self._cacheManager.GetValue('timer_time'))
+            self.executeOnce()
+            time.sleep(self._sleepTime)
 
     def getPriceForDay(self, day: str):
         cacheResult = None
