@@ -8,4 +8,4 @@ ADD database/ database
 ADD prices/ prices
 ADD provider/ provider
 
-ENTRYPOINT [ "python3", "main.py" ]
+ENTRYPOINT [ "python3", "/app/main.py" ]
