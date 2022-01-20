@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import math
 import re
@@ -26,20 +27,6 @@ class Orchestrator:
             format='%(asctime)-5s %(name)-15s %(levelname)-8s %(message)s',
             level=logging.INFO,  # Nivel de los eventos que se registran en el logger
         )
-
-    def __dayTimestamp(self, t: float) -> str:
-        return datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(utils.TIMEZONE)).strftime('%Y-%m-%d')
-
-    def __dayUnix(self, t: float):
-        t = datetime.datetime.strptime(datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(utils.TIMEZONE)).strftime('%Y-%m-%d'), '%Y-%m-%d')
-        t = t.replace(tzinfo=pytz.timezone(utils.TIMEZONE)).astimezone(tz=None)
-        return time.mktime(t.timetuple())
-
-    def _dayTimestamp(self, timestamp) -> float:
-        return self.__dayUnix(timestamp)
-
-    def _TSToDT(self, TS: float) -> str:
-        return datetime.datetime.fromtimestamp(TS).strftime('%Y-%m-%d %H:%M:%S')
 
     def start(self) -> None:
         while(True):
@@ -69,7 +56,6 @@ class Orchestrator:
             return prices
 
     def executeOnce(self) -> None:
-        today = datetime.datetime.today().weekday()
         now = time.time()
         # Load devices
         devicesDict = self._cacheManager.GetSerializable('devices')
@@ -77,6 +63,7 @@ class Orchestrator:
         for device in devices:
             provider = TuyaProvider(device=device)
             for step in device.steps:
+                todayStepTZ = utils.UnixToDatetime(now, step.timezone).weekday()
                 fro = 0
                 to = 6
                 if re.search(pattern='^[0-9]{1}(-[0-9]){1}$', string=step.days) is not None:
@@ -86,19 +73,19 @@ class Orchestrator:
                     fro = int(step.days)
                     to = int(step.days)
 
-                if today >= fro and today <= to:
-                    startTS = self._dayTimestamp(now) + step.start * self.HOUR_SECONDS
-                    endTS = self._dayTimestamp(now) + step.end * self.HOUR_SECONDS
-                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=self._TSToDT(startTS), to=self._TSToDT(endTS if endTS < now else now))
+                if todayStepTZ >= fro and todayStepTZ <= to:
+                    startTS = utils.DayUnix(now, step.timezone) + step.start * self.HOUR_SECONDS
+                    endTS = utils.DayUnix(now, step.timezone) + step.end * self.HOUR_SECONDS
+                    records = self._db.getRecordsByDevice(deviceID=device.id, fro=utils.UnixToTimestamp(startTS, step.timezone), to=utils.UnixToTimestamp(endTS if endTS < now else now, step.timezone))
                     totalTime = 0
                     lastRecord = None
                     recordPending = False
                     for record in records:
                         if lastRecord is None:
                             lastRecord = record
-                        recordStartTime = utils.TimestampToUnix(record.timestamp)
+                        recordStartTime = utils.TimestampToUnix(record.timestamp, step.timezone)
                         recordDurationS = record.seconds
-                        if recordStartTime > utils.TimestampToUnix(lastRecord.timestamp):
+                        if recordStartTime > utils.TimestampToUnix(lastRecord.timestamp, step.timezone):
                             lastRecord = record
                         recordEstimatedEnd = recordStartTime + recordDurationS
                         if recordEstimatedEnd < now:
@@ -108,20 +95,19 @@ class Orchestrator:
 
                     if (step.count * self.HOUR_SECONDS) > totalTime:
                         # step not ended, find hours
-                        prices = self.getPriceForDay(self.__dayTimestamp(now))
+                        prices = self.getPriceForDay(utils.DayTimestamp(now, step.timezone))
                         # First, filter elements by step hours
                         newPrices = []
                         for price in prices:
-                            start = utils.TimestampToUnix(price.start)
+                            start = utils.TimestampToUnix(price.start, step.timezone)
                             end = start + price.length
                             if start >= startTS and end <= endTS:
                                 newPrices.append(price)
                         # Every price last an hour. Pick just `count` first
                         newPrices.sort(key=lambda x: x.price)
                         newPrices = newPrices[0:int(math.ceil(step.count)) if step.count <= len(newPrices) else len(newPrices)]
-
                         for price in newPrices:
-                            start = utils.TimestampToUnix(price.start)
+                            start = utils.TimestampToUnix(price.start, step.timezone)
                             end = start + price.length
                             if now >= start and now < end:
                                 # turn on
@@ -130,16 +116,16 @@ class Orchestrator:
                                     turnedOn = provider.TurnOn(seconds=turnOnSeconds)
                                     if turnedOn:
                                         if recordPending:
-                                            newTime = int(now - utils.TimestampToUnix(lastRecord.timestamp) + turnOnSeconds)
+                                            newTime = int(now - utils.TimestampToUnix(lastRecord.timestamp, step.timezone) + turnOnSeconds)
                                             remaining = 0
                                             if newTime > self.HOUR_SECONDS:
                                                 remaining = newTime - self.HOUR_SECONDS
                                                 newTime = 3600
                                             self._db.updateRecord(id=lastRecord.id, seconds=newTime, timestamp=None, deviceID=None)
                                             if remaining != 0:
-                                                self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=lastRecord.deviceID, seconds=remaining)
+                                                self._db.insertRecord(timestamp=utils.UnixToTimestamp(now, step.timezone), deviceID=lastRecord.deviceID, seconds=remaining)
                                         else:
-                                            self._db.insertRecord(timestamp=self._TSToDT(now), deviceID=device.id, seconds=turnOnSeconds)
+                                            self._db.insertRecord(timestamp=utils.UnixToTimestamp(now, step.timezone), deviceID=device.id, seconds=turnOnSeconds)
                                 except KeyError:
                                     logging.error('Error turning on the device "' + device.id + ' (' + device.name + ')" forcing stop...')
                                     try:
