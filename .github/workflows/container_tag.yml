@@ -1,4 +1,4 @@
-name: Latest build
+name: Tag build
 
 on:
   push:
