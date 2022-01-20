@@ -22,5 +22,5 @@ jobs:
       run: |
         pycodestyle --config=.pycodestyle ./
 
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Build the Docker image for python ${{ matrix.python-version }}
+      run: docker build . --file Dockerfile --tag smap-cp-python-${{ matrix.python-version }}:$(date +%s)
