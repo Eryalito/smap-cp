@@ -9,6 +9,7 @@ devices:
         start: 00 # start at 00:00
         end: 24 # end at 24:00
         count: 3 # switched on for 3 hours in the period
+        timezone: CET
 
 cache-config:
   type: redis
@@ -21,4 +22,4 @@ database-config:
 
 application-config:
   timer: 10
-  timezone: CET
+  timezone: UTC
