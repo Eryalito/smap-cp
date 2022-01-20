@@ -20,4 +20,5 @@ database-config:
     file: database.db
 
 application-config:
-  timer: 1
+  timer: 10
+  timezone: CET

@@ -3,8 +3,12 @@ import time
 from json.encoder import JSONEncoder
 from typing import List
 
+import pytz
+
 from device import Device
 from step import Step
+
+TIMEZONE = 'UTC'
 
 
 class encoder(JSONEncoder):
@@ -12,12 +16,26 @@ class encoder(JSONEncoder):
         return o.__dict__
 
 
-def TimestampToUnix(timestamp: str) -> float:
-    return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').timetuple())
+def TimestampToUnix(timestamp: str, timezone: str = TIMEZONE) -> float:
+    return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone(timezone)).timetuple())
 
 
-def UnixToTimestamp(unix: float) -> str:
-    return datetime.datetime.fromtimestamp(unix).strftime('%Y-%m-%d %H:%M:%S')
+def UnixToDatetime(unix: float, timezone: str = TIMEZONE) -> datetime.datetime:
+    return datetime.datetime.fromtimestamp(unix).astimezone(pytz.timezone(timezone))
+
+
+def UnixToTimestamp(unix: float, timezone: str = TIMEZONE) -> str:
+    return UnixToDatetime(unix, timezone).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def DayTimestamp(t: float, timezone: str = TIMEZONE) -> str:
+    return datetime.datetime.fromtimestamp(t).replace(tzinfo=pytz.timezone(timezone)).strftime('%Y-%m-%d')
+
+
+def DayUnix(t: float, timezone: str = TIMEZONE) -> float:
+    t = datetime.datetime.strptime(datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(timezone)).strftime('%Y-%m-%d'), '%Y-%m-%d')
+    t = t.replace(tzinfo=pytz.timezone(timezone)).astimezone(tz=None)
+    return time.mktime(t.timetuple())
 
 
 def DevicesToDict(devices: List[Device]) -> dict:
@@ -55,7 +73,8 @@ def DictToDevices(devices: dict) -> List[Device]:
                         count=float(stepDict['count'])
                         if 'count' in stepDict else
                         (float(stepDict['_count'])
-                         if '_count' in stepDict else 0)
+                         if '_count' in stepDict else 0),
+                        timezone=stepDict['timezone'] if 'timezone' in stepDict else stepDict['_timezone'] if '_timezone' in stepDict else 'CET'
                     )
                     steps.append(step)
         device = Device(identifier=id, key=key, ip=ip,
