@@ -19,19 +19,24 @@ class encoder(JSONEncoder):
 def TimestampToUnix(timestamp: str, timezone: str = TIMEZONE) -> float:
     return time.mktime(datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone(timezone)).timetuple())
 
+
 def UnixToDatetime(unix: float, timezone: str = TIMEZONE) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(unix).astimezone(pytz.timezone(timezone))
+
 
 def UnixToTimestamp(unix: float, timezone: str = TIMEZONE) -> str:
     return UnixToDatetime(unix, timezone).strftime('%Y-%m-%d %H:%M:%S')
 
+
 def DayTimestamp(t: float, timezone: str = TIMEZONE) -> str:
     return datetime.datetime.fromtimestamp(t).replace(tzinfo=pytz.timezone(timezone)).strftime('%Y-%m-%d')
+
 
 def DayUnix(t: float, timezone: str = TIMEZONE) -> float:
     t = datetime.datetime.strptime(datetime.datetime.fromtimestamp(t).astimezone(pytz.timezone(timezone)).strftime('%Y-%m-%d'), '%Y-%m-%d')
     t = t.replace(tzinfo=pytz.timezone(timezone)).astimezone(tz=None)
     return time.mktime(t.timetuple())
+
 
 def DevicesToDict(devices: List[Device]) -> dict:
     newDevices = encoder().encode(devices)
