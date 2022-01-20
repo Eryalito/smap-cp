@@ -1,5 +1,6 @@
 # Smart Plug Control Platform
-![PyCodestyle](https://github.com/Eryalito/smap-cp/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/Eryalito/smap-cp/actions/workflows/ci.yml/badge.svg)
+![Lastest build](https://github.com/Eryalito/smap-cp/actions/workflows/container_latest.yml/badge.svg)
 
 Smart Plug Control Platform (SMAP-CP) is an application designed to manage electrical devices automatically through smart plugs.
 ## Description
