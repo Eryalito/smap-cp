@@ -21,6 +21,3 @@ jobs:
     - name: Analysing the code with pycodestyle
       run: |
         pycodestyle --config=.pycodestyle ./
-
-    - name: Build the Docker image for python ${{ matrix.python-version }}
-      run: docker build . --file Dockerfile --tag smap-cp-python-${{ matrix.python-version }}:$(date +%s)
