@@ -21,7 +21,6 @@ jobs:
     - name: Analysing the code with pycodestyle
       run: |
         pycodestyle --config=.pycodestyle ./
-      build:
 
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
